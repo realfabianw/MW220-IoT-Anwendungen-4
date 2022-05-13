@@ -369,34 +369,38 @@ class KeypressDelegate(DefaultDelegate):
 def on_connect(client, userdata, flags, rc):
     if rc==0:
         client.connected_flag=True #set flag
-        print("connected OK Returned code=",rc)
+        print("Successfully connected to MQTT-Broker. Code=",rc)
         #client.subscribe(topic)
     else:
-        print("Bad connection Returned code= ",rc)
+        print("Error connecting to the MQTT-Broker. Code=",rc)
+
+def on_publish(client, userdata, result):
+    print("Successfully published a message on MQTT")
+    pass
 
 def buildJson(listValues):
     timestamp = datetime.now().isoformat()
 
     jObservations = []
     for value in listValues:
-        jOberservationEntry = {'SensorType': value[0], 'Measure': value[1], 'Unit': value[2], 'Date': timestamp}
+        jOberservationEntry = {'SensorTypeCode': value[0], 'Measure': {'Content': value[1], 'UnitCode': value[2] }, 'DateTime': timestamp}
         jObservations.append(jOberservationEntry)
 
-
-    jObject = {'ConditionMonitoring': {'AssetId': "LU-BOT", 'Observation': jObservations}}
+    jObject = {'ConditionMonitoring': {'AssetID': "Lego-BOT", 'Observation': jObservations}}
     return json.dumps(jObject)
 
 def main():
     
     mqtt.Client.connected_flag = False
     mqtt_client_id = "MW220-MQTT-Client-Group-4"
-    mqtt_host = "localhost"
+    mqtt_host = "IWILR3-7.campus.fh-ludwigshafen.de"
     mqtt_port = 1883
-    mqtt_topic = "testtopic/mw220"
+    mqtt_topic = "Factory/ColorSorter/ConditionMonitoring"
 
     client = mqtt.Client(mqtt_client_id)
     
     client.on_connect = on_connect
+    client.on_publish = on_publish
 
     
     print("Attempting to connect to MQTT-Broker...")
@@ -405,8 +409,6 @@ def main():
     while not client.connected_flag:
         print("... connected: ", client.is_connected())
         time.sleep(1)
-    
-    client.publish(mqtt_topic, json.dumps({'connection': "established"}))
 
     host = "98:07:2d:27:f1:86"
     print('Connecting to ' + host )
@@ -446,7 +448,7 @@ def main():
         values = []
         values.append(["Temperature", humidity[0], "CEL"])
         values.append(["Humidity", humidity[1], "PCT"])
-        values.append(["Light", light, "?"])
+        values.append(["Light", light, "LMN"])
         values.append(["Battery", battery, "PCT"])
 
         json = buildJson(values)
