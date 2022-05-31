@@ -134,6 +134,7 @@ def buildJson(listValues):
     return json.dumps(jObject)
 
 def main():
+    #Connecting to MQTT
     mqtt.Client.connected_flag = False
     mqtt_client_id = "MW220-MQTT-Client-Group-4"
     mqtt_host = "IWILR3-7.campus.fh-ludwigshafen.de"
@@ -142,7 +143,7 @@ def main():
     client = mqtt.Client(mqtt_client_id)
     client.on_connect = on_connect
     client.on_publish = on_publish
-    sensortag_mac = "98:07:2d:27:f1:86"
+    
  
     print("Attempting to connect to MQTT-Broker...")
     client.loop_start()
@@ -151,6 +152,9 @@ def main():
         print("... connected: ", client.is_connected())
         time.sleep(1)
 
+
+    # Connecting to TI SensorTag
+    sensortag_mac = "98:07:2d:27:f1:86"
     print('Connecting to ' + sensortag_mac)
     tag = SensorTag(sensortag_mac)
     print("Successfully connected to SensorTag")
@@ -163,24 +167,24 @@ def main():
     time.sleep(1)
 
     while True:
-        print("Humidity: ", tag.humidity.read())
-        print("Light: ", tag.lightmeter.read())
-        print("Battery: ", tag.battery.read())
-        time.sleep(5)
-
         humidity = tag.humidity.read()
         light = tag.lightmeter.read()
         battery = tag.battery.read()
-
+        print("Humidity: ", humidity)
+        print("Light: ", light)
+        print("Battery: ", battery)
+        
         values = []
         values.append(["Temperature", humidity[0], "CEL"])
         values.append(["Humidity", humidity[1], "PCT"])
         values.append(["Light", light, "LMN"])
         values.append(["Battery", battery, "PCT"])
-
         json = buildJson(values)
+
         print(json)
         client.publish(mqtt_topic, json)
+
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
