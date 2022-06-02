@@ -123,7 +123,7 @@ def on_publish(client, userdata, result):
     pass
 
 def buildJson(listValues):
-    timestamp = datetime.now().isoformat()
+    timestamp = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
     jObservations = []
     for value in listValues:
